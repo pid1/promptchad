@@ -1,0 +1,21 @@
+# Promptchad Configuration
+
+[providers.openai]
+enabled = true
+api_key = ""  # Your OpenAI API key
+model = "gpt-4"
+temperature = 0.7
+max_tokens = 1024
+
+[providers.anthropic]
+enabled = true
+api_key = ""  # Your Anthropic API key
+model = "claude-3-5-sonnet-20241022"
+max_completion_tokens = 1024
+
+[providers.google]
+enabled = false
+api_key = ""  # Your Google AI API key
+model = "gemini-pro"
+temperature = 0.7
+max_tokens = 1024

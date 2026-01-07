@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promptchad</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #555;
+            font-size: 1.2em;
+            margin-top: 0;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        button.primary {
+            background: #007bff;
+            color: white;
+        }
+        button.primary:hover {
+            background: #0056b3;
+        }
+        button.primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        button.secondary {
+            background: #6c757d;
+            color: white;
+        }
+        button.secondary:hover {
+            background: #545b62;
+        }
+        .provider-config {
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .provider-config h3 {
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .provider-config label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+        .provider-config input[type="text"],
+        .provider-config input[type="number"] {
+            margin-bottom: 10px;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+        .row > * {
+            flex: 1;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        .prompt-results {
+            margin-bottom: 30px;
+        }
+        .prompt-results h3 {
+            margin: 0 0 15px 0;
+            padding: 10px 15px;
+            background: #e9ecef;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #495057;
+        }
+        .prompt-results h3 .label {
+            font-weight: 600;
+            color: #007bff;
+        }
+        .prompt-results h3 .label.variant-b {
+            color: #28a745;
+        }
+        .prompt-preview {
+            font-weight: normal;
+            color: #666;
+            font-style: italic;
+        }
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+        }
+        .result-card.error {
+            border-left-color: #dc3545;
+        }
+        .result-card h3 {
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            font-size: 14px;
+            color: #333;
+        }
+        .result-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .result-meta span {
+            margin-right: 15px;
+        }
+        .result-content {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error-message {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .prompt-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .prompt-actions select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .prompt-actions input {
+            flex: 1;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Promptchad</h1>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Prompt A</h2>
+            <div class="prompt-actions">
+                <select id="promptSelectA" onchange="loadPrompt('A')">
+                    <option value="">-- Select saved prompt --</option>
+                </select>
+                <input type="text" id="promptNameA" placeholder="Prompt name">
+                <button class="secondary" onclick="savePrompt('A')">Save</button>
+            </div>
+            <textarea id="promptA" placeholder="Enter prompt A here..."></textarea>
+        </div>
+        
+        <div class="panel">
+            <h2>Prompt B</h2>
+            <div class="prompt-actions">
+                <select id="promptSelectB" onchange="loadPrompt('B')">
+                    <option value="">-- Select saved prompt --</option>
+                </select>
+                <input type="text" id="promptNameB" placeholder="Prompt name">
+                <button class="secondary" onclick="savePrompt('B')">Save</button>
+            </div>
+            <textarea id="promptB" placeholder="Enter prompt B here (optional)..."></textarea>
+        </div>
+        
+        <div class="panel full-width">
+            <h2>Shared Input <span style="font-weight: normal; font-size: 0.8em; color: #666;">(appended to both prompts)</span></h2>
+            <textarea id="sharedInput" placeholder="Enter shared input here (e.g., customer query, test case)..." style="min-height: 100px;"></textarea>
+        </div>
+        
+        <div class="panel full-width" style="text-align: center;">
+            <button class="primary" id="runBtn" onclick="runTest()">Run A/B Test</button>
+        </div>
+        
+        <div class="panel full-width">
+            <h2>Provider Configuration</h2>
+            <div id="providers"></div>
+            <div class="actions">
+                <button class="secondary" onclick="saveConfig()">Save Configuration</button>
+            </div>
+        </div>
+        
+        <div class="panel full-width">
+            <h2>Results</h2>
+            <div id="results">
+                <p style="color: #999;">Run a test to see results here.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let config = { providers: {} };
+        // Store actual API keys (not masked)
+        const apiKeys = {};
+
+        // Mask API key showing only last 4 characters
+        function maskApiKey(key) {
+            if (!key || key.length <= 4) return key;
+            return '•'.repeat(key.length - 4) + key.slice(-4);
+        }
+
+        // Handle API key focus - show full key
+        function onApiKeyFocus(provider) {
+            const input = document.getElementById(`${provider}_api_key`);
+            if (apiKeys[provider]) {
+                input.value = apiKeys[provider];
+            }
+        }
+
+        // Handle API key blur - mask the key
+        function onApiKeyBlur(provider) {
+            const input = document.getElementById(`${provider}_api_key`);
+            const value = input.value;
+            if (value) {
+                apiKeys[provider] = value;
+                input.value = maskApiKey(value);
+            }
+        }
+
+        // Load config on page load
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/config');
+                config = await res.json();
+                // Store actual API keys
+                for (const [name, p] of Object.entries(config.providers || {})) {
+                    if (p.api_key) {
+                        apiKeys[name] = p.api_key;
+                    }
+                }
+                renderProviders();
+            } catch (e) {
+                console.error('Failed to load config:', e);
+            }
+        }
+
+        // Load saved prompts list, optionally selecting a specific prompt for a variant
+        async function loadPromptList(selectName = null, selectVariant = null) {
+            try {
+                const res = await fetch('/api/prompts');
+                const prompts = await res.json();
+                ['A', 'B'].forEach(variant => {
+                    const select = document.getElementById(`promptSelect${variant}`);
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">-- Select saved prompt --</option>';
+                    prompts.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p;
+                        opt.textContent = p;
+                        select.appendChild(opt);
+                    });
+                    // Restore selection: use selectName for specified variant, otherwise keep current
+                    if (selectVariant === variant && selectName) {
+                        select.value = selectName;
+                    } else if (currentValue) {
+                        select.value = currentValue;
+                    }
+                });
+            } catch (e) {
+                console.error('Failed to load prompts:', e);
+            }
+        }
+
+        // Load a specific prompt
+        async function loadPrompt(variant) {
+            const name = document.getElementById(`promptSelect${variant}`).value;
+            if (!name) return;
+            
+            try {
+                const res = await fetch(`/api/prompts/${name}`);
+                const data = await res.json();
+                if (data.content) {
+                    document.getElementById(`prompt${variant}`).value = data.content;
+                    document.getElementById(`promptName${variant}`).value = name;
+                }
+            } catch (e) {
+                console.error('Failed to load prompt:', e);
+            }
+        }
+
+        // Save current prompt
+        async function savePrompt(variant) {
+            const name = document.getElementById(`promptName${variant}`).value.trim();
+            const content = document.getElementById(`prompt${variant}`).value;
+            
+            if (!name) {
+                alert('Please enter a prompt name');
+                return;
+            }
+            
+            try {
+                await fetch(`/api/prompts/${name}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
+                });
+                // Reload list and select the saved prompt
+                loadPromptList(name, variant);
+            } catch (e) {
+                console.error('Failed to save prompt:', e);
+            }
+        }
+
+        // Render provider configuration forms
+        function renderProviders() {
+            const container = document.getElementById('providers');
+            container.innerHTML = '';
+            
+            const defaultProviders = ['openai', 'anthropic', 'google'];
+            const providers = config.providers || {};
+            
+            defaultProviders.forEach(name => {
+                const p = providers[name] || {};
+                const maskedKey = maskApiKey(p.api_key || '');
+                const div = document.createElement('div');
+                div.className = 'provider-config';
+                div.innerHTML = `
+                    <h3>
+                        <input type="checkbox" id="${name}_enabled" ${p.enabled !== false ? 'checked' : ''}>
+                        ${name.charAt(0).toUpperCase() + name.slice(1)}
+                    </h3>
+                    <label>API Key
+                        <input type="text" id="${name}_api_key" value="${maskedKey}" placeholder="Enter API key"
+                            onfocus="onApiKeyFocus('${name}')" onblur="onApiKeyBlur('${name}')">
+                    </label>
+                    <label>Model
+                        <input type="text" id="${name}_model" value="${p.model || getDefaultModel(name)}" placeholder="Model name">
+                    </label>
+                    <div class="row">
+                        <label>Temperature
+                            <input type="number" id="${name}_temperature" value="${p.temperature ?? 0.7}" min="0" max="2" step="0.1">
+                        </label>
+                        <label>Max Tokens
+                            <input type="number" id="${name}_max_tokens" value="${p.max_tokens || 1024}" min="1" max="32000">
+                        </label>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function getDefaultModel(provider) {
+            const defaults = {
+                openai: 'gpt-4',
+                anthropic: 'claude-3-5-sonnet-20241022',
+                google: 'gemini-pro'
+            };
+            return defaults[provider] || '';
+        }
+
+        // Collect config from form
+        function collectConfig() {
+            const providers = ['openai', 'anthropic', 'google'];
+            const newConfig = { providers: {} };
+            
+            providers.forEach(name => {
+                // Use stored key if available, otherwise use input value
+                const inputValue = document.getElementById(`${name}_api_key`).value;
+                const actualKey = apiKeys[name] || inputValue;
+                
+                newConfig.providers[name] = {
+                    enabled: document.getElementById(`${name}_enabled`).checked,
+                    api_key: actualKey,
+                    model: document.getElementById(`${name}_model`).value,
+                    temperature: parseFloat(document.getElementById(`${name}_temperature`).value),
+                    max_tokens: parseInt(document.getElementById(`${name}_max_tokens`).value)
+                };
+            });
+            
+            return newConfig;
+        }
+
+        // Save configuration
+        async function saveConfig() {
+            const newConfig = collectConfig();
+            
+            try {
+                await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newConfig)
+                });
+                config = newConfig;
+                alert('Configuration saved!');
+            } catch (e) {
+                console.error('Failed to save config:', e);
+                alert('Failed to save configuration');
+            }
+        }
+
+        // Run the test
+        async function runTest() {
+            const promptA = document.getElementById('promptA').value.trim();
+            const promptB = document.getElementById('promptB').value.trim();
+            const sharedInput = document.getElementById('sharedInput').value.trim();
+            
+            if (!promptA && !promptB) {
+                alert('Please enter at least one prompt');
+                return;
+            }
+            
+            const btn = document.getElementById('runBtn');
+            const resultsDiv = document.getElementById('results');
+            
+            btn.disabled = true;
+            btn.textContent = 'Running...';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Testing prompts across providers...</p></div>';
+            
+            try {
+                const res = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt_a: promptA, prompt_b: promptB, shared_input: sharedInput })
+                });
+                
+                const data = await res.json();
+                
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p class="error-message">${data.error}</p>`;
+                    return;
+                }
+                
+                renderResults(data);
+            } catch (e) {
+                console.error('Test failed:', e);
+                resultsDiv.innerHTML = '<p class="error-message">Test failed. Check console for details.</p>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Run A/B Test';
+            }
+        }
+
+        // Render test results
+        function renderResults(data) {
+            const container = document.getElementById('results');
+            let html = '';
+            
+            const variants = [
+                { key: 'results_a', prompt: data.prompt_a, label: 'A', labelClass: '' },
+                { key: 'results_b', prompt: data.prompt_b, label: 'B', labelClass: 'variant-b' }
+            ];
+            
+            for (const variant of variants) {
+                const results = data[variant.key];
+                if (!results || Object.keys(results).length === 0) continue;
+                
+                const promptPreview = variant.prompt.length > 100 
+                    ? variant.prompt.substring(0, 100) + '...' 
+                    : variant.prompt;
+                
+                html += `<div class="prompt-results">`;
+                html += `<h3><span class="label ${variant.labelClass}">Prompt ${variant.label}:</span> <span class="prompt-preview">${escapeHtml(promptPreview)}</span></h3>`;
+                html += '<div class="results-container">';
+                
+                for (const [provider, result] of Object.entries(results)) {
+                    const isError = !result.success;
+                    html += `
+                        <div class="result-card ${isError ? 'error' : ''}">
+                            <h3>${provider}</h3>
+                            ${isError ? `
+                                <p class="error-message">${result.error || 'Unknown error'}</p>
+                            ` : `
+                                <div class="result-meta">
+                                    ${result.model ? `<span>Model: ${result.model}</span>` : ''}
+                                    ${result.elapsed_seconds ? `<span>Time: ${result.elapsed_seconds}s</span>` : ''}
+                                    ${result.usage ? `<span>Tokens: ${JSON.stringify(result.usage)}</span>` : ''}
+                                </div>
+                                <div class="result-content">${escapeHtml(result.response)}</div>
+                            `}
+                        </div>
+                    `;
+                }
+                
+                html += '</div></div>';
+            }
+            
+            if (!html) {
+                html = '<p>No results. Make sure at least one provider is enabled with a valid API key.</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        loadConfig();
+        loadPromptList();
+    </script>
+</body>
+</html>
