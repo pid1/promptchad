@@ -56,6 +56,7 @@ dev
 ### Shared Input
 
 The shared input field is useful for workflows like:
+
 - Testing different customer support prompt templates against the same customer query
 - Comparing system prompts with identical user messages
 - A/B testing prompt variations with consistent test cases
@@ -85,6 +86,7 @@ All A/B test runs are automatically logged to the `logs/` directory as JSON Line
 ### Log Format
 
 Each log entry contains:
+
 - **timestamp**: ISO 8601 UTC timestamp
 - **inputs**: Original prompts (A, B) and shared input
 - **config**: Provider configuration used (API keys are redacted)
@@ -124,10 +126,10 @@ The devenv provides:
 
 ### Commands
 
-| Command | Description |
-|---------|-------------|
-| `dev` | Start web UI server with hot reload |
-| `cli <file>` | Run CLI with a prompt file |
+| Command       | Description                          |
+| ------------- | ------------------------------------ |
+| `dev`         | Start web UI server with hot reload  |
+| `cli <file>`  | Run CLI with a prompt file           |
 | `test-prompt` | Quick test with `prompts/sample.txt` |
 
 ### Adding Providers
