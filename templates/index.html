@@ -307,7 +307,7 @@
       }
 
       // Handle API key focus - show full key
-      function onApiKeyFocus(provider) {
+      function _onApiKeyFocus(provider) {
         const input = document.getElementById(`${provider}_api_key`);
         if (apiKeys[provider]) {
           input.value = apiKeys[provider];
@@ -315,7 +315,7 @@
       }
 
       // Handle API key blur - mask the key
-      function onApiKeyBlur(provider) {
+      function _onApiKeyBlur(provider) {
         const input = document.getElementById(`${provider}_api_key`);
         const value = input.value;
         if (value) {
@@ -370,7 +370,7 @@
       }
 
       // Load a specific prompt
-      async function loadPrompt(variant) {
+      async function _loadPrompt(variant) {
         const name = document.getElementById(`promptSelect${variant}`).value;
         if (!name) return;
 
@@ -387,7 +387,7 @@
       }
 
       // Save current prompt
-      async function savePrompt(variant) {
+      async function _savePrompt(variant) {
         const name = document
           .getElementById(`promptName${variant}`)
           .value.trim();
@@ -476,7 +476,7 @@
               document.getElementById(`${name}_temperature`).value,
             ),
             max_tokens: parseInt(
-              document.getElementById(`${name}_max_tokens`).value,
+              document.getElementById(`${name}_max_tokens`).value, 10
             ),
           };
         });
@@ -485,7 +485,7 @@
       }
 
       // Save configuration
-      async function saveConfig() {
+      async function _saveConfig() {
         const newConfig = collectConfig();
 
         try {
@@ -503,7 +503,7 @@
       }
 
       // Run the test
-      async function runTest() {
+      async function _runTest() {
         const promptA = document.getElementById("promptA").value.trim();
         const promptB = document.getElementById("promptB").value.trim();
         const sharedInput = document.getElementById("sharedInput").value.trim();
@@ -576,7 +576,7 @@
 
           const promptPreview =
             variant.prompt.length > 100
-              ? variant.prompt.substring(0, 100) + "..."
+              ? `${variant.prompt.substring(0, 100)}...`
               : variant.prompt;
 
           html += `<div class="prompt-results">`;
