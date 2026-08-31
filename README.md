@@ -142,7 +142,7 @@ To add a new provider, edit `promptchad.py`:
 
 ### Project Structure
 
-```
+```text
 ├── promptchad.py        # CLI tool and provider implementations
 ├── web_ui.py            # Flask server
 ├── templates/index.html # Web UI (vanilla HTML/JS)
