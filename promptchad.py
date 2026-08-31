@@ -144,7 +144,7 @@ async def run_test(prompt: str, config: dict) -> dict:
     if tasks:
         responses = await asyncio.gather(*tasks, return_exceptions=True)
         for name, response in zip(provider_names, responses):
-            if isinstance(response, Exception):
+            if isinstance(response, BaseException):
                 results[name] = {"success": False, "error": str(response)}
             else:
                 results[name] = response
