@@ -237,7 +237,9 @@
             <option value="">-- Select saved prompt --</option>
           </select>
           <input type="text" id="promptNameA" placeholder="Prompt name" />
-          <button class="secondary" onclick="savePrompt('A')">Save</button>
+          <button class="secondary" onclick="savePrompt('A')" type="button">
+            Save
+          </button>
         </div>
         <textarea id="promptA" placeholder="Enter prompt A here..."></textarea>
       </div>
@@ -249,7 +251,9 @@
             <option value="">-- Select saved prompt --</option>
           </select>
           <input type="text" id="promptNameB" placeholder="Prompt name" />
-          <button class="secondary" onclick="savePrompt('B')">Save</button>
+          <button class="secondary" onclick="savePrompt('B')" type="button">
+            Save
+          </button>
         </div>
         <textarea
           id="promptB"
@@ -272,7 +276,7 @@
       </div>
 
       <div class="panel full-width" style="text-align: center">
-        <button class="primary" id="runBtn" onclick="runTest()">
+        <button class="primary" id="runBtn" onclick="runTest()" type="button">
           Run A/B Test
         </button>
       </div>
@@ -281,7 +285,7 @@
         <h2>Provider Configuration</h2>
         <div id="providers"></div>
         <div class="actions">
-          <button class="secondary" onclick="saveConfig()">
+          <button class="secondary" onclick="saveConfig()" type="button">
             Save Configuration
           </button>
         </div>
@@ -476,7 +480,8 @@
               document.getElementById(`${name}_temperature`).value,
             ),
             max_tokens: parseInt(
-              document.getElementById(`${name}_max_tokens`).value, 10
+              document.getElementById(`${name}_max_tokens`).value,
+              10,
             ),
           };
         });
