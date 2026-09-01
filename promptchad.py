@@ -11,7 +11,6 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Any
 
 import toml
 
@@ -20,17 +19,17 @@ async def call_openai(prompt: str, config: dict) -> dict:
     """Call OpenAI API."""
     try:
         from openai import AsyncOpenAI
-        
+
         client = AsyncOpenAI(api_key=config["api_key"])
         start_time = time.time()
-        
+
         response = await client.chat.completions.create(
             model=config.get("model", "gpt-5.2"),
             messages=[{"role": "user", "content": prompt}],
             temperature=config.get("temperature", 0.7),
             max_completion_tokens=config.get("max_tokens", 1024),
         )
-        
+
         elapsed = time.time() - start_time
         return {
             "success": True,
@@ -51,16 +50,16 @@ async def call_anthropic(prompt: str, config: dict) -> dict:
     """Call Anthropic API."""
     try:
         from anthropic import AsyncAnthropic
-        
+
         client = AsyncAnthropic(api_key=config["api_key"])
         start_time = time.time()
-        
+
         response = await client.messages.create(
             model=config.get("model", "claude-3-5-sonnet-20241022"),
             max_tokens=config.get("max_tokens", 1024),
             messages=[{"role": "user", "content": prompt}],
         )
-        
+
         elapsed = time.time() - start_time
         return {
             "success": True,
@@ -80,10 +79,10 @@ async def call_google(prompt: str, config: dict) -> dict:
     """Call Google Gemini API."""
     try:
         import google.generativeai as genai
-        
+
         genai.configure(api_key=config["api_key"])
         model = genai.GenerativeModel(config.get("model", "gemini-pro"))
-        
+
         start_time = time.time()
         response = await asyncio.to_thread(
             model.generate_content,
@@ -93,7 +92,7 @@ async def call_google(prompt: str, config: dict) -> dict:
                 max_output_tokens=config.get("max_tokens", 1024),
             ),
         )
-        
+
         elapsed = time.time() - start_time
         return {
             "success": True,
@@ -118,38 +117,38 @@ async def run_test(prompt: str, config: dict) -> dict:
     results = {}
     tasks = []
     provider_names = []
-    
+
     providers_config = config.get("providers", {})
-    
+
     for provider_name, provider_config in providers_config.items():
         if not provider_config.get("enabled", True):
             continue
-        
+
         if provider_name not in PROVIDERS:
             results[provider_name] = {
                 "success": False,
                 "error": f"Unknown provider: {provider_name}",
             }
             continue
-        
+
         if not provider_config.get("api_key"):
             results[provider_name] = {
                 "success": False,
                 "error": "API key not configured",
             }
             continue
-        
+
         provider_names.append(provider_name)
         tasks.append(PROVIDERS[provider_name](prompt, provider_config))
-    
+
     if tasks:
         responses = await asyncio.gather(*tasks, return_exceptions=True)
         for name, response in zip(provider_names, responses):
-            if isinstance(response, Exception):
+            if isinstance(response, BaseException):
                 results[name] = {"success": False, "error": str(response)}
             else:
                 results[name] = response
-    
+
     return results
 
 
@@ -158,7 +157,7 @@ def load_config(config_path: Path) -> dict:
     if not config_path.exists():
         print(f"Error: Config file not found: {config_path}", file=sys.stderr)
         sys.exit(1)
-    
+
     return toml.load(config_path)
 
 
@@ -167,7 +166,7 @@ def load_prompt(prompt_path: Path) -> str:
     if not prompt_path.exists():
         print(f"Error: Prompt file not found: {prompt_path}", file=sys.stderr)
         sys.exit(1)
-    
+
     return prompt_path.read_text()
 
 
@@ -182,12 +181,12 @@ def format_text_output(results: dict, prompt: str) -> str:
     lines.append("-" * 40)
     lines.append(prompt[:500] + ("..." if len(prompt) > 500 else ""))
     lines.append("")
-    
+
     for provider, result in results.items():
         lines.append("=" * 80)
         lines.append(f"PROVIDER: {provider.upper()}")
         lines.append("-" * 40)
-        
+
         if result.get("success"):
             if result.get("model"):
                 lines.append(f"Model: {result['model']}")
@@ -202,9 +201,9 @@ def format_text_output(results: dict, prompt: str) -> str:
             lines.append(result["response"])
         else:
             lines.append(f"ERROR: {result.get('error', 'Unknown error')}")
-        
+
         lines.append("")
-    
+
     return "\n".join(lines)
 
 
@@ -237,18 +236,18 @@ def main():
         type=str,
         help="Use this text as prompt instead of reading from file",
     )
-    
+
     args = parser.parse_args()
-    
+
     config = load_config(args.config)
-    
+
     if args.prompt_text:
         prompt = args.prompt_text
     else:
         prompt = load_prompt(args.prompt_file)
-    
+
     results = asyncio.run(run_test(prompt, config))
-    
+
     if args.output == "json":
         output = {
             "prompt": prompt,

@@ -7,7 +7,7 @@ Simple Flask server that wraps the CLI tool.
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import toml
@@ -35,17 +35,24 @@ def get_config_for_logging(config: dict) -> dict:
     for provider, settings in config.get("providers", {}).items():
         log_config["providers"][provider] = {
             **settings,
-            "api_key": redact_api_key(settings.get("api_key", ""))
+            "api_key": redact_api_key(settings.get("api_key", "")),
         }
     return log_config
 
 
-def log_test_run(prompt_a: str, prompt_b: str, shared_input: str, results_a: dict, results_b: dict, config: dict):
+def log_test_run(
+    prompt_a: str,
+    prompt_b: str,
+    shared_input: str,
+    results_a: dict,
+    results_b: dict,
+    config: dict,
+):
     """Log test run to a structured JSON Lines file."""
     LOGS_DIR.mkdir(exist_ok=True)
-    
+
     log_entry = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "inputs": {
             "prompt_a": prompt_a,
             "prompt_b": prompt_b,
@@ -55,9 +62,9 @@ def log_test_run(prompt_a: str, prompt_b: str, shared_input: str, results_a: dic
         "outputs": {
             "results_a": results_a,
             "results_b": results_b,
-        }
+        },
     }
-    
+
     # Append to daily log file
     log_file = LOGS_DIR / f"{datetime.now().strftime('%Y-%m-%d')}.jsonl"
     with open(log_file, "a") as f:
@@ -122,15 +129,15 @@ def run():
     prompt_a = data.get("prompt_a", "").strip()
     prompt_b = data.get("prompt_b", "").strip()
     shared_input = data.get("shared_input", "").strip()
-    
+
     if not prompt_a and not prompt_b:
         return jsonify({"error": "At least one prompt is required"}), 400
-    
+
     if not CONFIG_PATH.exists():
         return jsonify({"error": "Config file not found"}), 400
-    
+
     config = toml.load(CONFIG_PATH)
-    
+
     # Combine prompts with shared input
     def combine_prompt(prompt, shared):
         if not prompt:
@@ -138,24 +145,26 @@ def run():
         if not shared:
             return prompt
         return f"{prompt}\n\n---\n\n{shared}"
-    
+
     full_prompt_a = combine_prompt(prompt_a, shared_input)
     full_prompt_b = combine_prompt(prompt_b, shared_input)
-    
+
     # Run tests for both prompts
     results_a = asyncio.run(run_test(full_prompt_a, config)) if full_prompt_a else {}
     results_b = asyncio.run(run_test(full_prompt_b, config)) if full_prompt_b else {}
-    
+
     # Log the test run (log original prompts and shared input separately)
     log_test_run(prompt_a, prompt_b, shared_input, results_a, results_b, config)
-    
-    return jsonify({
-        "prompt_a": prompt_a,
-        "prompt_b": prompt_b,
-        "shared_input": shared_input,
-        "results_a": results_a,
-        "results_b": results_b,
-    })
+
+    return jsonify(
+        {
+            "prompt_a": prompt_a,
+            "prompt_b": prompt_b,
+            "shared_input": shared_input,
+            "results_a": results_a,
+            "results_b": results_b,
+        }
+    )
 
 
 if __name__ == "__main__":
