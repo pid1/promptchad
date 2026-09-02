@@ -7,6 +7,7 @@ Simple Flask server that wraps the CLI tool.
 
 import asyncio
 import json
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -168,4 +169,7 @@ def run():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    # Flask's debug mode serves the Werkzeug console, which is remote code
+    # execution for anyone who can reach the port. Opt in explicitly rather
+    # than shipping it on by default.
+    app.run(debug=os.environ.get("PROMPTCHAD_DEBUG") == "1", port=5000)
