@@ -1,10 +1,10 @@
 { pkgs, lib, config, inputs, ... }:
 
 {
-  # Python 3.13 with uv
+  # Python 3.14 with uv (3.15 held: see .github/factory-holds.json)
   languages.python = {
     enable = true;
-    version = "3.13";
+    version = "3.14";
     uv = {
       enable = true;
       sync.enable = true;

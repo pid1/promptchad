@@ -120,7 +120,7 @@ Logs are gitignored by default.
 
 The devenv provides:
 
-- **Python 3.13** with uv for fast dependency management
+- **Python 3.14** with uv for fast dependency management
 - **Auto-sync** - dependencies install automatically on shell entry
 - **Hot reloading** - Flask runs in debug mode; edit Python files and the server reloads
 
