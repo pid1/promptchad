@@ -8,10 +8,11 @@ Simple Flask server that wraps the CLI tool.
 import asyncio
 import json
 import os
+import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
 
-import toml
+import tomli_w
 from flask import Flask, jsonify, render_template, request
 
 from promptchad import run_test
@@ -21,6 +22,15 @@ app = Flask(__name__)
 CONFIG_PATH = Path("config.toml")
 PROMPTS_DIR = Path("prompts")
 LOGS_DIR = Path("logs")
+
+
+def drop_none(value):
+    """Remove None values recursively; TOML has no null (an empty number field posts null)."""
+    if isinstance(value, dict):
+        return {k: drop_none(v) for k, v in value.items() if v is not None}
+    if isinstance(value, list):
+        return [drop_none(v) for v in value if v is not None]
+    return value
 
 
 def redact_api_key(key: str) -> str:
@@ -82,7 +92,8 @@ def index():
 def get_config():
     """Get current configuration."""
     if CONFIG_PATH.exists():
-        config = toml.load(CONFIG_PATH)
+        with open(CONFIG_PATH, "rb") as f:
+            config = tomllib.load(f)
         return jsonify(config)
     return jsonify({"providers": {}})
 
@@ -90,9 +101,9 @@ def get_config():
 @app.route("/api/config", methods=["POST"])
 def save_config():
     """Save configuration."""
-    config = request.json
-    with open(CONFIG_PATH, "w") as f:
-        toml.dump(config, f)
+    config = drop_none(request.json)
+    with open(CONFIG_PATH, "wb") as f:
+        tomli_w.dump(config, f)
     return jsonify({"success": True})
 
 
@@ -137,7 +148,8 @@ def run():
     if not CONFIG_PATH.exists():
         return jsonify({"error": "Config file not found"}), 400
 
-    config = toml.load(CONFIG_PATH)
+    with open(CONFIG_PATH, "rb") as f:
+        config = tomllib.load(f)
 
     # Combine prompts with shared input
     def combine_prompt(prompt, shared):

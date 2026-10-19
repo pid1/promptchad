@@ -10,9 +10,8 @@ import asyncio
 import json
 import sys
 import time
+import tomllib
 from pathlib import Path
-
-import toml
 
 
 async def call_openai(prompt: str, config: dict) -> dict:
@@ -78,16 +77,16 @@ async def call_anthropic(prompt: str, config: dict) -> dict:
 async def call_google(prompt: str, config: dict) -> dict:
     """Call Google Gemini API."""
     try:
-        import google.generativeai as genai
+        from google import genai
+        from google.genai import types
 
-        genai.configure(api_key=config["api_key"])
-        model = genai.GenerativeModel(config.get("model", "gemini-pro"))
-
+        client = genai.Client(api_key=config["api_key"])
         start_time = time.time()
-        response = await asyncio.to_thread(
-            model.generate_content,
-            prompt,
-            generation_config=genai.types.GenerationConfig(
+
+        response = await client.aio.models.generate_content(
+            model=config.get("model", "gemini-pro"),
+            contents=prompt,
+            config=types.GenerateContentConfig(
                 temperature=config.get("temperature", 0.7),
                 max_output_tokens=config.get("max_tokens", 1024),
             ),
@@ -158,7 +157,8 @@ def load_config(config_path: Path) -> dict:
         print(f"Error: Config file not found: {config_path}", file=sys.stderr)
         sys.exit(1)
 
-    return toml.load(config_path)
+    with open(config_path, "rb") as f:
+        return tomllib.load(f)
 
 
 def load_prompt(prompt_path: Path) -> str:

@@ -10,7 +10,6 @@ ENV/
 
 # uv
 .python-version
-uv.lock
 
 # devenv
 .devenv/
